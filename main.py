@@ -63,7 +63,7 @@ Faker.seed()
 
 
 def contact(fake, solver, sitekey, url, testing=True):
-    print("Solving captcha...")
+    print("Getting key...")
 
     key = "[KEY]"
     if not testing:
@@ -73,6 +73,8 @@ def contact(fake, solver, sitekey, url, testing=True):
         key_res = key_req.json()
         key = key_res["key"]
     print("Got key:", key)
+
+    print("Solving captcha...")
 
     captcha_code = "[CAPTCHA]"
     if not testing:
@@ -114,7 +116,10 @@ def contact(fake, solver, sitekey, url, testing=True):
     }
 
     if not testing:
-        pass  # TODO
+        requests.post(
+            "https://www.doitwithoutdues.com/api/form/SaveFormSubmission", data=body
+        )
+        print("Sent!")
     else:
         print(body)
 
