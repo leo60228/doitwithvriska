@@ -5,6 +5,7 @@ import os
 import requests
 import random
 import json
+import sys
 from argparse import ArgumentParser
 from time import sleep
 
@@ -79,6 +80,7 @@ def contact(fake, solver, sitekey, url, testing=True):
     captcha_code = "[CAPTCHA]"
     if not testing:
         captcha_res = solver.recaptcha(sitekey=sitekey, url=url)
+        print('Response:', captcha_res)
         captcha_code = captcha_res.code
     print("Got code:", captcha_code)
 
