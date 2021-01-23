@@ -8,8 +8,33 @@ import json
 import sys
 from argparse import ArgumentParser
 from time import sleep
+from html2text import HTML2Text
 
 load_dotenv()
+
+parser = ArgumentParser()
+parser.add_argument("--real", action="store_true")
+parser.add_argument("--mspa", required=True)
+args = parser.parse_args()
+
+f = open(args.mspa)
+mspa = json.load(f)
+f.close()
+
+
+def is_homestuck(page):
+    try:
+        return int(page["pageId"]) > 1901
+    except ValueError:
+        return False
+
+
+story = list(
+    filter(
+        lambda page: page["title"] and page["content"] and is_homestuck(page),
+        mspa["story"].values(),
+    )
+)
 
 apikey = os.getenv("2CAPTCHA_APIKEY")
 sitekey = "6LclNi8aAAAAAELxL1QpqA4ymERKv1MV7AFGHfbN"
@@ -62,8 +87,11 @@ solver = TwoCaptcha(apiKey=apikey)
 fake = Faker()
 Faker.seed()
 
+html2text = HTML2Text()
+html2text.ignore_links = True
 
-def contact(fake, solver, sitekey, url, testing=True):
+
+def contact(fake, solver, sitekey, url, story, html2text, testing=True):
     print("Getting key...")
 
     key = "[KEY]"
@@ -80,18 +108,19 @@ def contact(fake, solver, sitekey, url, testing=True):
     captcha_code = "[CAPTCHA]"
     if not testing:
         captcha_res = solver.recaptcha(sitekey=sitekey, url=url)
-        print('Response:', captcha_res)
-        captcha_code = captcha_res['code']
+        print("Response:", captcha_res)
+        captcha_code = captcha_res["code"]
     print("Got code:", captcha_code)
 
     [first, last] = random.choice(names)
     print("Name:", first, last)
 
-    subject = fake.sentence()
+    page = random.choice(story)
+    subject = page["title"]
 
     print("Subject:", subject)
 
-    body = fake.paragraph()
+    body = html2text.handle(page["content"])
 
     email = fake.ascii_email()
     form = {
@@ -126,18 +155,14 @@ def contact(fake, solver, sitekey, url, testing=True):
         print(body)
 
 
-parser = ArgumentParser()
-parser.add_argument("--real", action="store_true")
-args = parser.parse_args()
-
 if args.real:
     while True:
         try:
-            contact(fake, solver, sitekey, url, False)
+            contact(fake, solver, sitekey, url, story, html2text, False)
         except KeyboardInterrupt:
             raise
         except:
             print("Error:", sys.exc_info()[0])
             sleep(1)
 else:
-    contact(fake, solver, sitekey, url, True)
+    contact(fake, solver, sitekey, url, story, html2text, True)
