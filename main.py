@@ -81,7 +81,7 @@ def contact(fake, solver, sitekey, url, testing=True):
     if not testing:
         captcha_res = solver.recaptcha(sitekey=sitekey, url=url)
         print('Response:', captcha_res)
-        captcha_code = captcha_res.code
+        captcha_code = captcha_res['code']
     print("Got code:", captcha_code)
 
     [first, last] = random.choice(names)
@@ -134,6 +134,8 @@ if args.real:
     while True:
         try:
             contact(fake, solver, sitekey, url, False)
+        except KeyboardInterrupt:
+            raise
         except:
             print("Error:", sys.exc_info()[0])
             sleep(1)
